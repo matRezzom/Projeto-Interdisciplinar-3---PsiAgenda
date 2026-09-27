@@ -4,96 +4,379 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PsiAgenda - Novo Agendamento</title>
+    <!-- Fontes do Google (Lora e Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    
     <style>
-        body { background-color: #f8f9fa; }
-        .navbar-custom { background-color: #4a90e2; }
-        .card-custom { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f3f5f3;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+        }
+
+        /* Barra Lateral (Menu Verde Escuro) */
+        .sidebar {
+            width: 280px;
+            background-color: #1a3328;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Lora', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .brand-logo .logo-icon {
+            background-color: #3b5c4f;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .user-card {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-card i {
+            font-size: 1.5rem;
+            color: #8c9e93;
+        }
+
+        .user-card .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .user-card .user-role {
+            font-size: 0.75rem;
+            color: #8c9e93;
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #5c7365;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
+            padding-left: 0.5rem;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #c2d1c7;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .nav-btn.active {
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            color: #e0a3a3;
+            border: 1px solid rgba(224, 163, 163, 0.2);
+            border-radius: 8px;
+            padding: 0.65rem 1rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(224, 163, 163, 0.1);
+            color: #f8b4b4;
+        }
+
+        /* Área de Conteúdo Principal */
+        .main-content {
+            margin-left: 280px;
+            flex-grow: 1;
+            padding: 2.5rem;
+            width: calc(100% - 280px);
+        }
+
+        .header-title {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: #111827;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Form Container & Card */
+        .form-container {
+            max-width: 650px;
+        }
+
+        .card-custom {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            padding: 2rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        /* Estilização Automática dos Inputs Gerados pelo Django */
+        .card-custom input,
+        .card-custom select,
+        .card-custom textarea {
+            display: block;
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            font-size: 0.9rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #1f2937;
+            background-color: #ffffff;
+            background-clip: padding-box;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+
+        .card-custom input:focus,
+        .card-custom select:focus,
+        .card-custom textarea:focus {
+            border-color: #3f6e5e;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(63, 110, 94, 0.2);
+        }
+
+        .btn-green {
+            background-color: #3f6e5e;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            font-weight: 600;
+            transition: background-color 0.2s, transform 0.1s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-green:hover {
+            background-color: #33594c;
+            color: #ffffff;
+        }
+
+        /* Responsividade */
+        @media (max-width: 992px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                position: relative;
+                padding: 1.5rem;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
-    <a class="navbar-brand fw-bold" href="{% url 'painel_secretaria' %}">PsiAgenda</a>
-    <div class="ms-auto d-flex align-items-center gap-3">
-        <span class="text-white">Olá, {{ user.username }}</span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Sair</a>
-    </div>
-</nav>
+<!-- BARRA LATERAL -->
+<aside class="sidebar">
+    <a href="{% url 'painel_secretaria' %}" class="brand-logo">
+        <div class="logo-icon">Ψ</div>
+        <span>PsiAgenda</span>
+    </a>
 
-<div class="container" style="max-width: 600px;">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="user-card">
+        <i class="bi bi-person-circle"></i>
         <div>
-            <h2 class="fw-bold mb-0">Novo Agendamento</h2>
-            <p class="text-muted">Marque uma consulta para o paciente</p>
+            <p class="user-name">{{ user.username }}</p>
+            <p class="user-role">Secretária</p>
         </div>
-        <a href="{% url 'painel_secretaria' %}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i> Voltar
+    </div>
+
+    <nav class="nav-menu">
+        <div class="nav-section-title">Navegação</div>
+        
+        <a href="{% url 'painel_secretaria' %}" class="nav-btn active">
+            <i class="bi bi-calendar-event"></i> Painel Principal
         </a>
-    </div>
+        <a href="{% url 'listar_pacientes' %}" class="nav-btn">
+            <i class="bi bi-people"></i> Pacientes
+        </a>
+        <a href="{% url 'listar_psicologos' %}" class="nav-btn">
+            <i class="bi bi-person-badge"></i> Psicólogos
+        </a>
+    </nav>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <a href="{% url 'logout' %}" class="logout-btn">
+        <i class="bi bi-box-arrow-right"></i> Sair
+    </a>
+</aside>
+
+<!-- CONTEÚDO PRINCIPAL -->
+<main class="main-content">
+    <div class="form-container mx-auto">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="header-title">Novo Agendamento</h1>
+                <p class="header-subtitle mb-0">Marque uma consulta para o paciente</p>
             </div>
-        {% endfor %}
-    {% endif %}
+            <a href="{% url 'painel_secretaria' %}" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
 
-    <div class="card card-custom p-4">
-        <form method="POST">
-            {% csrf_token %}
-
-            {% if form.non_field_errors %}
-                <div class="alert alert-danger">
-                    {% for error in form.non_field_errors %}
-                        <p class="mb-0">{{ error }}</p>
-                    {% endfor %}
+        <!-- MENSAGENS / ALERTAS -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
-            {% endif %}
+            {% endfor %}
+        {% endif %}
 
-            <div class="mb-3">
-                <label for="{{ form.psicologo.id_for_label }}" class="form-label fw-bold">Psicólogo(a)</label>
-                {{ form.psicologo }}
-                {% if form.psicologo.errors %}
-                    <div class="text-danger small mt-1">{{ form.psicologo.errors.0 }}</div>
+        <!-- CARD DO FORMULÁRIO -->
+        <div class="card-custom">
+            <form method="POST">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mb-4">
+                        {% for error in form.non_field_errors %}
+                            <p class="mb-0">{{ error }}</p>
+                        {% endfor %}
+                    </div>
                 {% endif %}
-            </div>
 
-            <div class="mb-3">
-                <label for="{{ form.paciente.id_for_label }}" class="form-label fw-bold">Paciente</label>
-                {{ form.paciente }}
-                {% if form.paciente.errors %}
-                    <div class="text-danger small mt-1">{{ form.paciente.errors.0 }}</div>
-                {% endif %}
-            </div>
+                <div class="mb-3">
+                    <label for="{{ form.psicologo.id_for_label }}" class="form-label">Psicólogo(a)</label>
+                    {{ form.psicologo }}
+                    {% if form.psicologo.errors %}
+                        <div class="text-danger small mt-1">{{ form.psicologo.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-            <div class="mb-3">
-                <label for="{{ form.data_hora.id_for_label }}" class="form-label fw-bold">Data e Hora</label>
-                {{ form.data_hora }}
-                {% if form.data_hora.errors %}
-                    <div class="text-danger small mt-1">{{ form.data_hora.errors.0 }}</div>
-                {% endif %}
-            </div>
+                <div class="mb-3">
+                    <label for="{{ form.paciente.id_for_label }}" class="form-label">Paciente</label>
+                    {{ form.paciente }}
+                    {% if form.paciente.errors %}
+                        <div class="text-danger small mt-1">{{ form.paciente.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-            <div class="mb-4">
-                <label for="{{ form.observacao.id_for_label }}" class="form-label fw-bold">Observação (opcional)</label>
-                {{ form.observacao }}
-                {% if form.observacao.errors %}
-                    <div class="text-danger small mt-1">{{ form.observacao.errors.0 }}</div>
-                {% endif %}
-            </div>
+                <div class="mb-3">
+                    <label for="{{ form.data_hora.id_for_label }}" class="form-label">Data e Hora</label>
+                    {{ form.data_hora }}
+                    {% if form.data_hora.errors %}
+                        <div class="text-danger small mt-1">{{ form.data_hora.errors.0 }}</div>
+                    {% endif %}
+                </div>
 
-            <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary py-2 fw-bold">
-                    <i class="bi bi-calendar-check me-1"></i> Confirmar Agendamento
-                </button>
-            </div>
-        </form>
+                <div class="mb-4">
+                    <label for="{{ form.observacao.id_for_label }}" class="form-label">Observação (opcional)</label>
+                    {{ form.observacao }}
+                    {% if form.observacao.errors %}
+                        <div class="text-danger small mt-1">{{ form.observacao.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn-green">
+                        <i class="bi bi-calendar-check me-2"></i> Confirmar Agendamento
+                    </button>
+                </div>
+            </form>
+        </div>
+        
     </div>
-</div>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

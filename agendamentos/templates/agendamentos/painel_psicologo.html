@@ -2,44 +2,333 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PsiAgenda - Painel do Psicólogo</title>
+    <!-- Fontes do Google (Lora e Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <style> body { background-color: #f8f9fa; } .navbar-custom { background-color: #3b71ca; } </style>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f3f5f3;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+        }
+
+        /* Barra Lateral (Menu Verde Escuro) */
+        .sidebar {
+            width: 280px;
+            background-color: #1a3328;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 2.5rem 1.5rem 1.5rem 1.5rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 100;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Lora', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .brand-logo .logo-icon {
+            background-color: #3b5c4f;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ffffff;
+        }
+
+        .user-card {
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-card i {
+            font-size: 1.5rem;
+            color: #8c9e93;
+        }
+
+        .user-card .user-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .user-card .user-role {
+            font-size: 0.75rem;
+            color: #8c9e93;
+            margin: 0;
+        }
+
+        .nav-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-grow: 1;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #5c7365;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
+            padding-left: 0.5rem;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: #c2d1c7;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .nav-btn.active {
+            background-color: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            margin-top: auto;
+            color: #e0a3a3;
+            border: 1px solid rgba(224, 163, 163, 0.2);
+            border-radius: 8px;
+            padding: 0.65rem 1rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(224, 163, 163, 0.1);
+            color: #f8b4b4;
+        }
+
+        /* Área de Conteúdo Principal */
+        .main-content {
+            margin-left: 280px;
+            flex-grow: 1;
+            padding: 2.5rem;
+            width: calc(100% - 280px);
+        }
+
+        .header-title {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: #111827;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .header-subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .badge-crp {
+            background-color: #3f6e5e;
+            color: #ffffff;
+            font-weight: 600;
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        /* Card Customizado */
+        .card-custom {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
+        }
+
+        .table thead th {
+            background-color: #f9fafb;
+            color: #4b5563;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table tbody td {
+            padding: 1rem 1.25rem;
+            color: #1f2937;
+            font-size: 0.9rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .btn-meet {
+            background-color: #1a3328;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.4rem 0.85rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            transition: background-color 0.2s;
+        }
+
+        .btn-meet:hover {
+            background-color: #2e5443;
+            color: #ffffff;
+        }
+
+        .badge-waiting {
+            background-color: #fef3c7;
+            color: #92400e;
+            font-weight: 600;
+            padding: 0.4rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        /* Responsividade */
+        @media (max-width: 992px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                min-height: auto;
+                position: relative;
+                padding: 1.5rem;
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4 shadow-sm">
-    <a class="navbar-brand fw-bold" href="{% url 'painel_psicologo' %}">
-        <i class="bi bi-heart-pulse"></i> PsiAgenda | Área do Profissional
-    </a>
-    <div class="ms-auto d-flex gap-3 text-white align-items-center">
-        <span><i class="bi bi-person-badge me-1"></i> Dr(a). {{ psicologo.nome_completo }}</span>
-        <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Sair</a>
-    </div>
-</nav>
 
-<div class="container py-2 mb-5">
+<!-- BARRA LATERAL -->
+<aside class="sidebar">
+    <a href="{% url 'painel_psicologo' %}" class="brand-logo">
+        <div class="logo-icon">Ψ</div>
+        <span>PsiAgenda</span>
+    </a>
+
+    <div class="user-card">
+        <i class="bi bi-person-badge"></i>
+        <div>
+            <p class="user-name">Dr(a). {{ psicologo.nome_completo }}</p>
+            <p class="user-role">Psicólogo(a)</p>
+        </div>
+    </div>
+
+    <nav class="nav-menu">
+        <div class="nav-section-title">Área do Profissional</div>
+        
+        <a href="{% url 'painel_psicologo' %}" class="nav-btn active">
+            <i class="bi bi-calendar-event"></i> Minhas Consultas
+        </a>
+    </nav>
+
+    <a href="{% url 'logout' %}" class="logout-btn">
+        <i class="bi bi-box-arrow-right"></i> Sair
+    </a>
+</aside>
+
+<!-- CONTEÚDO PRINCIPAL -->
+<main class="main-content">
+    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-1">Minhas Consultas</h2>
-            <p class="text-muted mb-0">Gestão de atendimentos e salas de videochamada</p>
+            <h1 class="header-title">Minhas Consultas</h1>
+            <p class="header-subtitle mb-0">Gestão de atendimentos e salas de videochamada</p>
         </div>
-        <span class="badge bg-primary fs-6 px-3 py-2">CRP: {{ psicologo.crp }}</span>
+        <span class="badge-crp">
+            <i class="bi bi-card-heading me-1"></i> CRP: {{ psicologo.crp }}
+        </span>
     </div>
 
+    <!-- MENSAGENS / ALERTAS -->
     {% if messages %}
         {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4" role="alert">
                 {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
     {% endif %}
 
-    <div class="card border-0 shadow-sm p-3">
+    <!-- TABELA DE CONSULTAS -->
+    <div class="card-custom">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table align-middle">
+                <thead>
                     <tr>
                         <th>Data / Horário</th>
                         <th>Paciente</th>
@@ -51,27 +340,33 @@
                 <tbody>
                     {% for consulta in agendamentos %}
                     <tr>
-                        <td class="fw-bold text-primary">
-                            <i class="bi bi-calendar-event me-1"></i> {{ consulta.data_hora|date:"d/m/Y - H:i" }}
+                        <td class="fw-bold text-dark">
+                            <i class="bi bi-clock me-1 text-muted"></i> {{ consulta.data_hora|date:"d/m/Y - H:i" }}
                         </td>
                         <td class="fw-semibold">
                             {{ consulta.paciente.nome_completo }}
                         </td>
                         <td>
-                            <i class="bi bi-telephone text-muted"></i> {{ consulta.paciente.telefone|default:"Não informado" }}
+                            {% if consulta.paciente.telefone %}
+                                <a href="https://wa.me/55{{ consulta.paciente.telefone|slugify }}" target="_blank" class="text-decoration-none text-dark">
+                                    <i class="bi bi-telephone me-1 text-muted"></i> {{ consulta.paciente.telefone }}
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Não informado</span>
+                            {% endif %}
                         </td>
                         <td class="text-center">
-                            <a href="https://meet.jit.si/PsiAgenda-Consulta-{{ consulta.id }}" target="_blank" class="btn btn-sm btn-outline-success">
+                            <a href="https://meet.jit.si/PsiAgenda-Consulta-{{ consulta.id }}" target="_blank" class="btn-meet">
                                 <i class="bi bi-camera-video-fill me-1"></i> Abrir Sala Virtual
                             </a>
                         </td>
                         <td class="text-center">
                             {% if consulta.status == 'Solicitado Cancelamento' %}
-                                <span class="badge bg-warning text-dark px-3 py-2">
+                                <span class="badge-waiting">
                                     <i class="bi bi-clock-history me-1"></i> Aguardando Secretária
                                 </span>
                             {% else %}
-                                <a href="{% url 'solicitar_cancelamento_psicologo' consulta.pk %}" class="btn btn-sm btn-outline-warning">
+                                <a href="{% url 'solicitar_cancelamento_psicologo' consulta.pk %}" class="btn btn-sm btn-outline-warning text-dark">
                                     <i class="bi bi-exclamation-triangle me-1"></i> Solicitar Cancelamento
                                 </a>
                             {% endif %}
@@ -79,8 +374,8 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-5">
-                            <i class="bi bi-calendar-check fs-1 text-secondary d-block mb-2"></i>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-calendar-check fs-2 d-block mb-2 text-secondary"></i>
                             Você não possui consultas agendadas.
                         </td>
                     </tr>
@@ -89,7 +384,8 @@
             </table>
         </div>
     </div>
-</div>
+
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

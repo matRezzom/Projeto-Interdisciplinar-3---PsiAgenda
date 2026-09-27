@@ -4,57 +4,305 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PsiAgenda - Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Fontes do Google (Lora para os títulos elegantes e Inter para os textos/campos) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
         body {
-            background-color: #f4f6f9;
-            height: 100vh;
+            display: flex;
+            min-height: 100vh;
+            background-color: #f3f5f3;
+        }
+
+        .login-container {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        /* Lado Esquerdo - Painel Verde Escuro */
+        .brand-panel {
+            flex: 1;
+            background-color: #1a3328;
+            color: #ffffff;
+            padding: 3.5rem 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-family: 'Lora', serif;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .brand-logo .logo-icon {
+            background-color: #3b5c4f;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ffffff;
         }
-        .card-login {
-            max-width: 400px;
+
+        .brand-content {
+            max-width: 460px;
+            margin: auto 0;
+        }
+
+        .brand-quote {
+            font-family: 'Lora', serif;
+            font-size: 2.3rem;
+            line-height: 1.25;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-description {
+            color: #8c9e93;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .brand-footer {
+            color: #5c7365;
+            font-size: 0.85rem;
+        }
+
+        /* Lado Direito - Formulário de Login */
+        .form-panel {
+            flex: 1;
+            background-color: #f3f5f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .form-box {
             width: 100%;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 380px;
         }
-        .btn-primary {
-            background-color: #4a90e2;
+
+        .form-header {
+            margin-bottom: 2rem;
+        }
+
+        .form-header h2 {
+            font-family: 'Lora', serif;
+            font-size: 1.8rem;
+            color: #111827;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-header p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #4b6354;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: #ffffff;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #3f6e5e;
+            box-shadow: 0 0 0 3px rgba(63, 110, 94, 0.15);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 0.85rem;
+            background-color: #3f6e5e;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .btn-submit:hover {
+            background-color: #33594c;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .register-link a {
+            color: #3f6e5e;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Caixa de Contas de Demonstração */
+        .demo-box {
+            margin-top: 2rem;
+            background-color: #e5ece7;
+            border-radius: 10px;
+            padding: 1.25rem;
+            font-size: 0.825rem;
+            color: #3b5446;
+            line-height: 1.6;
+        }
+
+        .demo-box strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #273d32;
+        }
+
+        /* Botão de Ajuda Flutuante */
+        .help-btn {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 32px;
+            height: 32px;
+            background-color: #212529;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+            cursor: pointer;
             border: none;
         }
-        .btn-primary:hover {
-            background-color: #357abd;
+
+        /* Ajustes para telas de telemóvel/tablets */
+        @media (max-width: 768px) {
+            .login-container {
+                flex-direction: column;
+            }
+            .brand-panel {
+                padding: 2.5rem 2rem;
+            }
+            .brand-quote {
+                font-size: 1.6rem;
+            }
         }
     </style>
 </head>
 <body>
 
-<div class="card card-login p-4">
-    <div class="text-center mb-4">
-        <h3 class="fw-bold text-primary">PsiAgenda</h3>
-        <p class="text-muted">Acesse sua conta para continuar</p>
+<div class="login-container">
+    <!-- Painel Esquerdo -->
+    <div class="brand-panel">
+        <div class="brand-logo">
+            <div class="logo-icon">Ψ</div>
+            <span>PsiAgenda</span>
+        </div>
+
+        <div class="brand-content">
+            <h1 class="brand-quote">"Organização que cuida.<br>Tecnologia que liberta."</h1>
+            <p class="brand-description">
+                Sistema de agendamento para consultórios de psicologia de pequeno porte. Reduza erros, elimine o caderno e foque no que importa.
+            </p>
+        </div>
+
+        <div class="brand-footer">
+            PsiAgenda © 2026
+        </div>
     </div>
 
-    {% if form.errors %}
-        <div class="alert alert-danger p-2 text-center small" role="alert">
-            Usuário ou senha inválidos. Tente novamente.
-        </div>
-    {% endif %}
+    <!-- Painel Direito -->
+    <div class="form-panel">
+        <div class="form-box">
+            <div class="form-header">
+                <h2>Bem-vindo(a)</h2>
+                <p>Acesse com suas credenciais</p>
+            </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="id_username" class="form-label">Usuário / E-mail</label>
-            <input type="text" name="username" class="form-control" id="id_username" required autofocus placeholder="Digite seu usuário">
+            {% if messages %}
+                {% for message in messages %}
+                    <div style="background-color: #fde8e8; color: #9b1c1c; padding: 0.75rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1rem;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="username">E-MAIL</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">SENHA</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••" required>
+                </div>
+
+                <button type="submit" class="btn-submit">Entrar</button>
+            </form>
+
+            <div class="register-link">
+                Não tem conta? <a href="#">Criar cadastro</a>
+            </div>
+
+            <div class="demo-box">
+                <strong>Contas de demonstração:</strong>
+                <div>Secretária: secretaria@psiagenda.com / 123456</div>
+                <div>Psicóloga: ana@psiagenda.com / 123456</div>
+                <div>Psicólogo: carlos@psiagenda.com / 123456</div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label for="id_password" class="form-label">Senha</label>
-            <input type="password" name="password" class="form-control" id="id_password" required placeholder="Digite sua senha">
-        </div>
-        <button type="submit" class="btn btn-primary w-100 py-2">Entrar</button>
-    </form>
+
+        <button class="help-btn" title="Ajuda">?</button>
+    </div>
 </div>
 
 </body>
