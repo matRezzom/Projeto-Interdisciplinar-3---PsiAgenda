@@ -10,44 +10,72 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
     <a class="navbar-brand fw-bold" href="{% url 'painel_secretaria' %}">PsiAgenda</a>
-    <div class="ms-auto d-flex gap-3 text-white">
+    <div class="ms-auto d-flex gap-3 text-white align-items-center">
         <span>Olá, {{ user.username }}</span>
         <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Sair</a>
     </div>
 </nav>
+
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-0">Pacientes</h2>
-            <p class="text-muted">Lista de pacientes cadastrados no sistema</p>
+            <p class="text-muted mb-0">Lista de pacientes cadastrados no sistema</p>
         </div>
         <div class="d-flex gap-2">
             <a href="{% url 'painel_secretaria' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left"></i> Voltar</a>
             <a href="{% url 'cadastrar_paciente' %}" class="btn btn-primary btn-sm"><i class="bi bi-person-plus"></i> Novo Paciente</a>
         </div>
     </div>
-    {% if messages %}{% for message in messages %}<div class="alert alert-{{ message.tags }}">{{ message }}</div>{% endfor %}{% endif %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <div class="card border-0 shadow-sm p-3">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Nome</th><th>CPF</th><th>Telefone</th><th>E-mail</th>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>E-mail</th>
+                    <th class="text-center">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for paciente in pacientes %}
                 <tr>
-                    <td>{{ paciente.nome_completo }}</td>
+                    <td class="fw-semibold">{{ paciente.nome_completo }}</td>
                     <td>{{ paciente.cpf }}</td>
                     <td>{{ paciente.telefone }}</td>
                     <td>{{ paciente.email|default:"-" }}</td>
+                    <td class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="{% url 'editar_paciente' paciente.pk %}" class="btn btn-outline-warning" title="Editar">
+                                <i class="bi bi-pencil"></i> Editar
+                            </a>
+                            <a href="{% url 'deletar_paciente' paciente.pk %}" class="btn btn-outline-danger" title="Excluir">
+                                <i class="bi bi-trash"></i> Excluir
+                            </a>
+                        </div>
+                    </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="4" class="text-center text-muted">Nenhum paciente cadastrado.</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">Nenhum paciente cadastrado.</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
+<script href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

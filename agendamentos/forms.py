@@ -12,6 +12,28 @@ class AgendamentoForm(forms.ModelForm):
             'observacao': forms.Textarea(attrs={'rows': 3, 'class': 'form-control', 'placeholder': 'Anotações administrativas...'}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        psicologo = cleaned_data.get('psicologo')
+        data_hora = cleaned_data.get('data_hora')
+
+        if psicologo and data_hora:
+            # Verifica choque de horários apenas para agendamentos ativos
+            agendamentos_existentes = Agendamento.objects.filter(
+                psicologo=psicologo, 
+                data_hora=data_hora, 
+                status='AGENDADO'
+            )
+            # Se for uma edição, exclui o próprio agendamento da verificação
+            if self.instance.pk:
+                agendamentos_existentes = agendamentos_existentes.exclude(pk=self.instance.pk)
+
+            if agendamentos_existentes.exists():
+                self.add_error('data_hora', 'O horário selecionado já está ocupado para este psicólogo.')
+        
+        return cleaned_data
+
+
 class PacienteForm(forms.ModelForm):
     class Meta:
         model = Paciente
@@ -24,6 +46,7 @@ class PacienteForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'endereco': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
 
 class PsicologoForm(forms.ModelForm):
     class Meta:
@@ -38,14 +61,3 @@ class PsicologoForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
             'endereco': forms.TextInput(attrs={'class': 'form-control'}),
         }
-
-    def clean(self):
-        cleaned_data = super().clean()
-        psicologo = cleaned_data.get('psicologo')
-        data_hora = cleaned_data.get('data_hora')
-
-        if psicologo and data_hora:
-            if Agendamento.objects.filter(psicologo=psicologo, data_hora=data_hora, status='AGENDADO').exists():
-                self.add_error('data_hora', 'O horário selecionado já está ocupado para este psicólogo.')
-        
-        return cleaned_data

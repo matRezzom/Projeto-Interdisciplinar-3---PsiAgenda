@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -23,17 +23,6 @@ def dashboard_redirect(request):
     else:
         return redirect('painel_secretaria')
 
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.utils import timezone
-from datetime import date
-from .models import Agendamento
-
-from datetime import datetime, time
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.db.models import Q
-from .models import Agendamento
 
 @login_required
 def painel_secretaria(request):
@@ -98,6 +87,37 @@ def criar_agendamento(request):
 
     return render(request, 'agendamentos/criar_agendamento.html', {'form': form})
 
+def editar_agendamento(request, agendamento_id):
+    agendamento = get_object_or_404(Agendamento, id=agendamento_id)
+    
+    if request.method == 'POST':
+        form = AgendamentoForm(request.POST, instance=agendamento)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Consulta atualizada com sucesso!')
+            return redirect('painel_secretaria')
+    else:
+        form = AgendamentoForm(instance=agendamento)
+        
+    return render(request, 'agendamentos/editar.html', {
+        'form': form,
+        'agendamento': agendamento
+    })
+
+
+def cancelar_agendamento(request, agendamento_id):
+    agendamento = get_object_or_404(Agendamento, id=agendamento_id)
+    
+    if request.method == 'POST':
+        agendamento.status = 'CANCELADO'
+        agendamento.save()
+        messages.success(request, f'Consulta de {agendamento.paciente.nome_completo} foi cancelada e o horário está livre.')
+        return redirect('painel_secretaria')
+        
+    return render(request, 'agendamentos/confirmar_cancelamento.html', {
+        'agendamento': agendamento
+    })
+
 # --- PACIENTES ---
 @login_required
 def listar_pacientes(request):
@@ -115,6 +135,28 @@ def cadastrar_paciente(request):
     else:
         form = PacienteForm()
     return render(request, 'agendamentos/cadastrar_paciente.html', {'form': form})
+
+@login_required
+def editar_paciente(request, pk):
+    paciente = get_object_or_404(Paciente, pk=pk)
+    if request.method == 'POST':
+        form = PacienteForm(request.POST, instance=paciente)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Dados do paciente atualizados com sucesso!')
+            return redirect('listar_pacientes')
+    else:
+        form = PacienteForm(instance=paciente)
+    return render(request, 'agendamentos/form_paciente.html', {'form': form, 'titulo': 'Editar Paciente'})
+
+@login_required
+def deletar_paciente(request, pk):
+    paciente = get_object_or_404(Paciente, pk=pk)
+    if request.method == 'POST':
+        paciente.delete()
+        messages.success(request, 'Paciente excluído com sucesso!')
+        return redirect('listar_pacientes')
+    return render(request, 'agendamentos/confirmar_deletar.html', {'item': paciente.nome_completo, 'tipo': 'Paciente', 'voltar_url': 'listar_pacientes'})
 
 # --- PSICÓLOGOS ---
 @login_required
@@ -152,3 +194,25 @@ def cadastrar_psicologo(request):
     else:
         form = PsicologoForm()
     return render(request, 'agendamentos/cadastrar_psicologo.html', {'form': form})
+
+@login_required
+def editar_psicologo(request, pk):
+    psicologo = get_object_or_404(Psicologo, pk=pk)
+    if request.method == 'POST':
+        form = PsicologoForm(request.POST, instance=psicologo)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Dados do psicólogo atualizados com sucesso!')
+            return redirect('listar_psicologos')
+    else:
+        form = PsicologoForm(instance=psicologo)
+    return render(request, 'agendamentos/form_psicologo.html', {'form': form, 'titulo': 'Editar Psicólogo'})
+
+@login_required
+def deletar_psicologo(request, pk):
+    psicologo = get_object_or_404(Psicologo, pk=pk)
+    if request.method == 'POST':
+        psicologo.delete()
+        messages.success(request, 'Psicólogo excluído com sucesso!')
+        return redirect('listar_psicologos')
+    return render(request, 'agendamentos/confirmar_deletar.html', {'item': psicologo.nome_completo, 'tipo': 'Psicólogo', 'voltar_url': 'listar_psicologos'})
