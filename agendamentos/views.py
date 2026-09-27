@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.timezone import get_current_timezone, make_aware
 
-from .forms import AgendamentoForm, PacienteForm, PsicologoForm
+from .forms import AgendamentoForm, PacienteForm, PsicologoForm, EditarPsicologoForm
 from .models import Agendamento, Paciente, Psicologo
 
 
@@ -48,13 +48,10 @@ def fazer_logout(request):
 
 @login_required
 def dashboard_redirect(request):
-    """Redireciona o usuário para seu painel específico."""
-    if hasattr(request.user, 'perfil_psicologo'):
+    """Redireciona o utilizador logado para o painel correto de acordo com o perfil."""
+    if Psicologo.objects.filter(usuario=request.user).exists():
         return redirect('painel_psicologo')
-    elif Paciente.objects.filter(email=request.user.email).exists():
-        return redirect('painel_paciente')
-    else:
-        return redirect('painel_secretaria')
+    return redirect('painel_secretaria')
 
 
 # --- PAINEL DA SECRETÁRIA ---
@@ -157,134 +154,179 @@ def listar_pacientes(request):
     return render(request, 'agendamentos/listar_pacientes.html', {'pacientes': pacientes})
 
 
-@login_required
 def cadastrar_paciente(request):
     if request.method == 'POST':
         form = PacienteForm(request.POST)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Paciente cadastrado com sucesso!')
+            username = form.cleaned_data.get('username')
+            senha = form.cleaned_data.get('senha_provisoria')
+            
+            user = None
+            if username and senha:
+                user = User.objects.create_user(
+                    username=username,
+                    password=senha,
+                    email=form.cleaned_data.get('email', '')
+                )
+            
+            paciente = form.save(commit=False)
+            if user:
+                if hasattr(paciente, 'usuario'):
+                    paciente.usuario = user
+                elif hasattr(paciente, 'user'):
+                    paciente.user = user
+            paciente.save()
+            
+            # Corrigido de paciente.nome para paciente.nome_completo
+            messages.success(request, f"Paciente {paciente.nome_completo} cadastrado com sucesso!")
             return redirect('listar_pacientes')
     else:
         form = PacienteForm()
     return render(request, 'agendamentos/cadastrar_paciente.html', {'form': form})
 
 
-@login_required
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Paciente
+from .forms import EditarPacienteForm
+
 def editar_paciente(request, pk):
     paciente = get_object_or_404(Paciente, pk=pk)
+    
     if request.method == 'POST':
-        form = PacienteForm(request.POST, instance=paciente)
+        form = EditarPacienteForm(request.POST, instance=paciente)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Dados do paciente atualizados com sucesso!')
+            messages.success(request, f"Dados do paciente {paciente.nome_completo} atualizados!")
             return redirect('listar_pacientes')
     else:
-        form = PacienteForm(instance=paciente)
-    return render(request, 'agendamentos/form_paciente.html', {'form': form, 'titulo': 'Editar Paciente'})
+        form = EditarPacienteForm(instance=paciente)
 
+    return render(request, 'agendamentos/form_paciente.html', {'form': form, 'paciente': paciente})
 
-@login_required
 def deletar_paciente(request, pk):
     paciente = get_object_or_404(Paciente, pk=pk)
+    
     if request.method == 'POST':
-        paciente.delete()
-        messages.success(request, 'Paciente excluído com sucesso!')
+        nome = paciente.nome_completo
+        # Se o paciente tiver conta de usuário vinculada, deleta o usuário (o paciente é deletado em cascata ou manualmente)
+        if hasattr(paciente, 'user') and paciente.user:
+            paciente.user.delete()
+        else:
+            paciente.delete()
+            
+        messages.success(request, f"Paciente {nome} excluído com sucesso!")
         return redirect('listar_pacientes')
-    return render(request, 'agendamentos/confirmar_deletar.html', {'item': paciente.nome_completo, 'tipo': 'Paciente', 'voltar_url': 'listar_pacientes'})
 
+    return render(request, 'agendamentos/confirmar_deletar.html', {'paciente': paciente})
 
 # --- PSICÓLOGOS ---
-@login_required
 def listar_psicologos(request):
-    psicologos = Psicologo.objects.filter(ativo=True).order_by('nome_completo')
-    return render(request, 'agendamentos/listar_psicologos.html', {'psicologos': psicologos})
+    busca = request.GET.get('busca', '')
+    psicologos = Psicologo.objects.all()
+    if busca:
+        psicologos = psicologos.filter(nome_completo__icontains=busca)
+    return render(request, 'agendamentos/listar_psicologos.html', {'psicologos': psicologos, 'busca': busca})
 
-
-@login_required
+# 2. Cadastrar Psicólogo (cria Utilizador e Perfil)
 def cadastrar_psicologo(request):
     if request.method == 'POST':
         form = PsicologoForm(request.POST)
         if form.is_valid():
-            psicologo = form.save(commit=False)
+            username = form.cleaned_data['username']
+            senha = form.cleaned_data['senha_provisoria']
             
-            # Gera um nome de utilizador baseado no e-mail
-            username = psicologo.email.split('@')[0]
-            
-            if User.objects.filter(username=username).exists():
-                username = f"{username}_{User.objects.count()}"
-            
-            # Cria a conta de utilizador para o psicólogo aceder ao sistema
-            novo_usuario = User.objects.create_user(
+            # Cria a conta de utilizador no Django
+            user = User.objects.create_user(
                 username=username,
-                email=psicologo.email,
-                password='senha_padrao_psicologo'
+                password=senha,
+                email=form.cleaned_data.get('email', '')
             )
             
-            psicologo.usuario = novo_usuario
+            # Vincula diretamente o utilizador ao campo 'usuario' do modelo
+            psicologo = form.save(commit=False)
+            psicologo.usuario = user
             psicologo.save()
             
-            messages.success(request, f'Psicólogo cadastrado com sucesso! Utilizador de acesso: {username}')
+            messages.success(request, f"Psicólogo {psicologo.nome_completo} cadastrado com sucesso!")
             return redirect('listar_psicologos')
     else:
         form = PsicologoForm()
     return render(request, 'agendamentos/cadastrar_psicologo.html', {'form': form})
 
-
-@login_required
+# 3. Editar Psicólogo
 def editar_psicologo(request, pk):
     psicologo = get_object_or_404(Psicologo, pk=pk)
     if request.method == 'POST':
-        form = PsicologoForm(request.POST, instance=psicologo)
+        form = EditarPsicologoForm(request.POST, instance=psicologo)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Dados do psicólogo atualizados com sucesso!')
+            messages.success(request, f"Dados do psicólogo {psicologo.nome_completo} atualizados!")
             return redirect('listar_psicologos')
     else:
-        form = PsicologoForm(instance=psicologo)
-    return render(request, 'agendamentos/form_psicologo.html', {'form': form, 'titulo': 'Editar Psicólogo'})
+        form = EditarPsicologoForm(instance=psicologo)
+    return render(request, 'agendamentos/form_psicologo.html', {'form': form, 'psicologo': psicologo})
 
-
-@login_required
+# 4. Eliminar Psicólogo
 def deletar_psicologo(request, pk):
     psicologo = get_object_or_404(Psicologo, pk=pk)
     if request.method == 'POST':
-        psicologo.delete()
-        messages.success(request, 'Psicólogo excluído com sucesso!')
+        nome = psicologo.nome_completo
+        if hasattr(psicologo, 'usuario') and psicologo.usuario:
+            psicologo.usuario.delete()
+        elif hasattr(psicologo, 'user') and psicologo.user:
+            psicologo.user.delete()
+        else:
+            psicologo.delete()
+            
+        messages.success(request, f"Psicólogo {nome} excluído com sucesso!")
         return redirect('listar_psicologos')
-    return render(request, 'agendamentos/confirmar_deletar.html', {'item': psicologo.nome_completo, 'tipo': 'Psicólogo', 'voltar_url': 'listar_psicologos'})
 
+    return render(request, 'agendamentos/confirmar_deletar_psicologo.html', {'psicologo': psicologo})
 
 # --- PAINEL DO PSICÓLOGO ---
 @login_required
 def painel_psicologo(request):
+    """Exibe apenas as consultas do psicólogo logado com link da sala remota."""
     try:
-        psicologo = request.user.perfil_psicologo
-    except AttributeError:
-        return render(request, 'agendamentos/erro_perfil.html', {
-            'mensagem': 'O seu utilizador não possui um perfil de Psicólogo associado.'
-        })
+        psicologo = Psicologo.objects.get(usuario=request.user)
+    except Psicologo.DoesNotExist:
+        messages.error(request, "Perfil de psicólogo não encontrado.")
+        return redirect('painel_secretaria')
 
-    data_str = request.GET.get('data', '')
-    busca = request.GET.get('busca', '')
-
-    agendamentos = Agendamento.objects.filter(psicologo=psicologo)
-
-    if data_str:
-        agendamentos = agendamentos.filter(data_hora__date=data_str)
-    
-    if busca:
-        agendamentos = agendamentos.filter(paciente__nome_completo__icontains=busca)
-
-    agendamentos = agendamentos.order_by('data_hora')
+    # Busca apenas os agendamentos pertencentes a este psicólogo
+    agendamentos = Agendamento.objects.filter(psicologo=psicologo).order_by('data_hora')
 
     context = {
         'psicologo': psicologo,
         'agendamentos': agendamentos,
-        'data_selecionada': data_str,
-        'busca': busca,
     }
     return render(request, 'agendamentos/painel_psicologo.html', context)
+
+@login_required
+def solicitar_cancelamento_psicologo(request, pk):
+    """Permite ao psicólogo enviar uma solicitação de cancelamento com motivo para a secretária."""
+    psicologo = get_object_or_404(Psicologo, usuario=request.user)
+    agendamento = get_object_or_404(Agendamento, pk=pk, psicologo=psicologo)
+
+    if request.method == 'POST':
+        motivo = request.POST.get('motivo', 'Sem motivo informado')
+        
+        # Altera o status da consulta
+        if hasattr(agendamento, 'status'):
+            agendamento.status = 'Solicitado Cancelamento'
+        
+        # Registra a justificativa no campo de observação
+        if hasattr(agendamento, 'observacao'):
+            obs_anterior = agendamento.observacao or ''
+            agendamento.observacao = f"[SOLICITAÇÃO DE CANCELAMENTO - DR(A) {psicologo.nome_completo}]: {motivo}\n{obs_anterior}"
+            
+        agendamento.save()
+
+        messages.success(request, "Solicitação de cancelamento enviada com sucesso para a secretária!")
+        return redirect('painel_psicologo')
+
+    return render(request, 'agendamentos/solicitar_cancelamento_psicologo.html', {'agendamento': agendamento})
 
 
 # --- PAINEL DO PACIENTE ---

@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import Agendamento, Paciente, Psicologo
 
 class AgendamentoForm(forms.ModelForm):
@@ -35,6 +36,36 @@ class AgendamentoForm(forms.ModelForm):
 
 
 class PacienteForm(forms.ModelForm):
+    username = forms.CharField(
+        label="Nome de Usuário (para Login)",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: joao.silva'})
+    )
+    senha_provisoria = forms.CharField(
+        label="Senha Provisória",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Crie uma senha temporária'}),
+        help_text="O paciente precisará alterar esta senha no primeiro login."
+    )
+
+    class Meta:
+        model = Paciente
+        fields = ['nome_completo', 'cpf', 'data_nascimento', 'telefone', 'email', 'endereco']
+        widgets = {
+            'nome_completo': forms.TextInput(attrs={'class': 'form-control'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
+            'data_nascimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'endereco': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este nome de usuário já está em uso.")
+        return username
+
+
+class EditarPacienteForm(forms.ModelForm):
     class Meta:
         model = Paciente
         fields = ['nome_completo', 'cpf', 'data_nascimento', 'telefone', 'email', 'endereco']
@@ -49,13 +80,44 @@ class PacienteForm(forms.ModelForm):
 
 
 class PsicologoForm(forms.ModelForm):
+    username = forms.CharField(
+        label="Nome de Usuário (para Login)",
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: psico.ana'})
+    )
+    senha_provisoria = forms.CharField(
+        label="Senha Provisória",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Crie uma senha temporária'}),
+        help_text="O psicólogo precisará desta senha para realizar o primeiro acesso."
+    )
+
     class Meta:
         model = Psicologo
-        fields = ['nome_completo', 'cpf', 'crp', 'data_nascimento', 'telefone', 'email', 'endereco']
+        fields = ['nome_completo', 'crp', 'cpf', 'data_nascimento', 'telefone', 'email', 'endereco']
         widgets = {
             'nome_completo': forms.TextInput(attrs={'class': 'form-control'}),
+            'crp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'CRP 00/00000'}),
             'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
-            'crp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00/00000'}),
+            'data_nascimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'endereco': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Este nome de usuário já está em uso.")
+        return username
+
+
+class EditarPsicologoForm(forms.ModelForm):
+    class Meta:
+        model = Psicologo
+        fields = ['nome_completo', 'crp', 'cpf', 'data_nascimento', 'telefone', 'email', 'endereco']
+        widgets = {
+            'nome_completo': forms.TextInput(attrs={'class': 'form-control'}),
+            'crp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'CRP 00/00000'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '000.000.000-00'}),
             'data_nascimento': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'telefone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),

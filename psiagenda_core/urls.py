@@ -33,4 +33,6 @@ urlpatterns = [
     path('psicologos/novo/', views.cadastrar_psicologo, name='cadastrar_psicologo'),
     path('psicologos/<int:pk>/editar/', views.editar_psicologo, name='editar_psicologo'),
     path('psicologos/<int:pk>/deletar/', views.deletar_psicologo, name='deletar_psicologo'),
+
+    path('psicologo/consulta/<int:pk>/solicitar-cancelamento/', views.solicitar_cancelamento_psicologo, name='solicitar_cancelamento_psicologo'),
 ]

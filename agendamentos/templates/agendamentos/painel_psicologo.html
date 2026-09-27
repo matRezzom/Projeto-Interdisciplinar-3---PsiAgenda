@@ -2,93 +2,86 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PsiAgenda - Painel do Psicólogo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <style>
-        body { background-color: #f8f9fa; }
-        .navbar-custom { background-color: #2c3e50; }
-        .card-custom { border: none; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-    </style>
+    <style> body { background-color: #f8f9fa; } .navbar-custom { background-color: #3b71ca; } </style>
 </head>
 <body>
-
-<nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4">
-    <a class="navbar-brand fw-bold" href="#">PsiAgenda</a>
-    <div class="ms-auto d-flex align-items-center gap-3">
-        <span class="text-white">Dr(a). {{ psicologo.nome_completo }} (CRP: {{ psicologo.crp }})</span>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom px-4 mb-4 shadow-sm">
+    <a class="navbar-brand fw-bold" href="{% url 'painel_psicologo' %}">
+        <i class="bi bi-heart-pulse"></i> PsiAgenda | Área do Profissional
+    </a>
+    <div class="ms-auto d-flex gap-3 text-white align-items-center">
+        <span><i class="bi bi-person-badge me-1"></i> Dr(a). {{ psicologo.nome_completo }}</span>
         <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Sair</a>
     </div>
 </nav>
 
-<div class="container">
+<div class="container py-2 mb-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold mb-0">Minha Agenda</h2>
-            <p class="text-muted mb-0">Consultas e sessões agendadas</p>
+            <h2 class="fw-bold mb-1">Minhas Consultas</h2>
+            <p class="text-muted mb-0">Gestão de atendimentos e salas de videochamada</p>
         </div>
+        <span class="badge bg-primary fs-6 px-3 py-2">CRP: {{ psicologo.crp }}</span>
     </div>
 
-    <!-- Filtros do Painel -->
-    <form method="GET" action="" class="row g-3 mb-4">
-        <div class="col-md-4">
-            <label for="data" class="form-label font-weight-bold">Filtrar por Data:</label>
-            <input type="date" 
-                   id="data" 
-                   name="data" 
-                   value="{% if data_selecionada %}{{ data_selecionada }}{% endif %}" 
-                   class="form-control" 
-                   onchange="this.form.submit()">
-        </div>
-
-        <div class="col-md-6">
-            <label for="busca" class="form-label font-weight-bold">Buscar Paciente:</label>
-            <div class="input-group">
-                <input type="text" 
-                       id="busca" 
-                       name="busca" 
-                       value="{{ busca }}" 
-                       class="form-control" 
-                       placeholder="Digite o nome do paciente...">
-                <button class="btn btn-secondary" type="submit">Buscar</button>
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
-        </div>
+        {% endfor %}
+    {% endif %}
 
-        <div class="col-md-2 d-flex align-items-end">
-            <a href="{% url 'painel_psicologo' %}" class="btn btn-outline-secondary w-100">Limpar Filtros</a>
-        </div>
-    </form>
-
-    <div class="card card-custom p-3">
+    <div class="card border-0 shadow-sm p-3">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th>Data / Horário</th>
                         <th>Paciente</th>
-                        <th>Telefone</th>
-                        <th>Status</th>
-                        <th>Observações</th>
+                        <th>Contato</th>
+                        <th class="text-center">Atendimento Remoto</th>
+                        <th class="text-center">Ação</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for agendamento in agendamentos %}
+                    {% for consulta in agendamentos %}
                     <tr>
-                        <td class="fw-bold">{{ agendamento.data_hora|date:"d/m/Y - H:i" }}</td>
-                        <td>{{ agendamento.paciente.nome_completo }}</td>
-                        <td>{{ agendamento.paciente.telefone }}</td>
-                        <td>
-                            <span class="badge {% if agendamento.status == 'AGENDADO' %}bg-primary{% elif agendamento.status == 'CONCLUIDO' %}bg-success{% else %}bg-danger{% endif %}">
-                                {{ agendamento.get_status_display }}
-                            </span>
+                        <td class="fw-bold text-primary">
+                            <i class="bi bi-calendar-event me-1"></i> {{ consulta.data_hora|date:"d/m/Y - H:i" }}
                         </td>
-                        <td>{{ agendamento.observacao|default:"—" }}</td>
+                        <td class="fw-semibold">
+                            {{ consulta.paciente.nome_completo }}
+                        </td>
+                        <td>
+                            <i class="bi bi-telephone text-muted"></i> {{ consulta.paciente.telefone|default:"Não informado" }}
+                        </td>
+                        <td class="text-center">
+                            <a href="https://meet.jit.si/PsiAgenda-Consulta-{{ consulta.id }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-camera-video-fill me-1"></i> Abrir Sala Virtual
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            {% if consulta.status == 'Solicitado Cancelamento' %}
+                                <span class="badge bg-warning text-dark px-3 py-2">
+                                    <i class="bi bi-clock-history me-1"></i> Aguardando Secretária
+                                </span>
+                            {% else %}
+                                <a href="{% url 'solicitar_cancelamento_psicologo' consulta.pk %}" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-exclamation-triangle me-1"></i> Solicitar Cancelamento
+                                </a>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">
-                            Nenhum agendamento encontrado na sua agenda.
+                        <td colspan="5" class="text-center text-muted py-5">
+                            <i class="bi bi-calendar-check fs-1 text-secondary d-block mb-2"></i>
+                            Você não possui consultas agendadas.
                         </td>
                     </tr>
                     {% endfor %}
@@ -98,5 +91,6 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
