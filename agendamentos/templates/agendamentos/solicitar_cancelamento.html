@@ -169,13 +169,11 @@
 <body>
 
 <div class="form-container">
-    <!-- LOGO DA MARCA -->
     <a href="{% url 'painel_psicologo' %}" class="brand-logo">
         <div class="logo-icon">Ψ</div>
         <span>PsiAgenda</span>
     </a>
 
-    <!-- CARD FORMULÁRIO -->
     <div class="card-custom">
         <h2 class="header-title">
             <i class="bi bi-exclamation-triangle-fill"></i> Solicitar Cancelamento
@@ -185,13 +183,11 @@
             Esta solicitação será enviada para o painel da secretária para que ela cancele a consulta no sistema e entre em contato com o paciente.
         </p>
 
-        <!-- RESUMO DA CONSULTA -->
         <div class="info-box">
             <p><strong>Paciente:</strong> {{ agendamento.paciente.nome_completo }}</p>
             <p><strong>Data/Hora:</strong> {{ agendamento.data_hora|date:"d/m/Y às H:i" }}</p>
         </div>
 
-        <!-- FORMULÁRIO DE MOTIVO -->
         <form method="POST">
             {% csrf_token %}
             <div class="mb-4">

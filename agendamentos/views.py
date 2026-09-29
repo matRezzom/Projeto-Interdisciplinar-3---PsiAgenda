@@ -10,6 +10,10 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.timezone import get_current_timezone, make_aware
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.shortcuts import redirect, render
 
 from .forms import AgendamentoForm, PacienteForm, PsicologoForm, EditarPsicologoForm
 from .models import Agendamento, Paciente, Psicologo
@@ -57,37 +61,44 @@ def dashboard_redirect(request):
 # --- PAINEL DA SECRETÁRIA ---
 @login_required
 def painel_secretaria(request):
-    data_str = request.GET.get('data', '').strip()
-    busca = request.GET.get('busca', '').strip()
+  data_selecionada = request.GET.get('data')
+  busca = request.GET.get('busca', '').strip()
 
-    hoje = date.today()
-    amanha = hoje + timedelta(days=1)
+  # 1. Busca inicial de agendamentos
+  agendamentos = Agendamento.objects.all().order_by('-data_hora')
 
-    # Base de todos os agendamentos ativos
-    agendamentos = Agendamento.objects.filter(status='AGENDADO').order_by('data_hora')
+  # 2. Aplica filtro de data se selecionada
+  if data_selecionada:
+    agendamentos = agendamentos.filter(data_hora__date=data_selecionada)
 
-    # Filtra por data APENAS se a secretária escolheu uma data específica
-    if data_str:
-        agendamentos = agendamentos.filter(data_hora__date=data_str)
+  # 3. Aplica busca por nome de Paciente ou Psicólogo
+  if busca:
+    agendamentos = agendamentos.filter(
+        paciente__nome_completo__icontains=busca
+    ) | agendamentos.filter(psicologo__nome_completo__icontains=busca)
 
-    # Filtra por nome se foi digitado algo na busca
-    if busca:
-        agendamentos = agendamentos.filter(paciente__nome_completo__icontains=busca)
+  # 4. Busca solicitações de cancelamento pendentes feitas pelos psicólogos
+  solicitacoes_cancelamento = Agendamento.objects.filter(
+      status='Solicitado Cancelamento'
+  ).order_by('data_hora')
 
-    # Notificações de amanhã que ainda não foram confirmadas (RF08)
-    notificacoes_amanha = Agendamento.objects.filter(
-        data_hora__date=amanha, 
-        status='AGENDADO'
-    ).order_by('data_hora')
+  # 5. Busca consultas que vão ocorrer nas próximas 2 horas (para o Pop-up)
+  agora = timezone.now()
+  limite_proximas = agora + timedelta(days=1)
 
-    context = {
-        'agendamentos': agendamentos,
-        'notificacoes_amanha': notificacoes_amanha,
-        'data_selecionada': data_str,
-        'busca': busca,
-        'amanha': amanha,
-    }
-    return render(request, 'agendamentos/painel_secretaria.html', context)
+  consultas_proximas = Agendamento.objects.filter(
+      data_hora__range=(agora, limite_proximas), status='AGENDADO'
+  ).order_by('data_hora')
+
+  context = {
+      'agendamentos': agendamentos,
+      'solicitacoes_cancelamento': solicitacoes_cancelamento,
+      'consultas_proximas': consultas_proximas,
+      'data_selecionada': data_selecionada,
+      'busca': busca,
+  }
+
+  return render(request, 'agendamentos/painel_secretaria.html', context)
 
 
 @login_required
@@ -305,28 +316,26 @@ def painel_psicologo(request):
 
 @login_required
 def solicitar_cancelamento_psicologo(request, pk):
-    """Permite ao psicólogo enviar uma solicitação de cancelamento com motivo para a secretária."""
-    psicologo = get_object_or_404(Psicologo, usuario=request.user)
-    agendamento = get_object_or_404(Agendamento, pk=pk, psicologo=psicologo)
+  agendamento = get_object_or_404(Agendamento, pk=pk)
 
-    if request.method == 'POST':
-        motivo = request.POST.get('motivo', 'Sem motivo informado')
-        
-        # Altera o status da consulta
-        if hasattr(agendamento, 'status'):
-            agendamento.status = 'Solicitado Cancelamento'
-        
-        # Registra a justificativa no campo de observação
-        if hasattr(agendamento, 'observacao'):
-            obs_anterior = agendamento.observacao or ''
-            agendamento.observacao = f"[SOLICITAÇÃO DE CANCELAMENTO - DR(A) {psicologo.nome_completo}]: {motivo}\n{obs_anterior}"
-            
-        agendamento.save()
+  if request.method == 'POST':
+    motivo = request.POST.get('motivo')
 
-        messages.success(request, "Solicitação de cancelamento enviada com sucesso para a secretária!")
-        return redirect('painel_psicologo')
+    # Atualiza o status e salva o motivo
+    agendamento.status = 'Solicitado Cancelamento'
+    agendamento.motivo_cancelamento = motivo
+    agendamento.save()
 
-    return render(request, 'agendamentos/solicitar_cancelamento_psicologo.html', {'agendamento': agendamento})
+    messages.warning(
+        request, 'Solicitação de cancelamento enviada para a secretária.'
+    )
+    return redirect('painel_psicologo')
+
+  return render(
+      request,
+      'agendamentos/solicitar_cancelamento.html',
+      {'agendamento': agendamento},
+  )
 
 
 # --- PAINEL DO PACIENTE ---
@@ -346,3 +355,33 @@ def painel_paciente(request):
         'agendamentos': agendamentos,
     }
     return render(request, 'agendamentos/painel_paciente.html', context)
+
+@login_required
+def alterar_senha(request):
+  if request.method == 'POST':
+    form = PasswordChangeForm(request.user, request.POST)
+    if form.is_valid():
+      user = form.save()
+      update_session_auth_hash(request, user)  # Mantém o usuário logado
+
+      # Se for um paciente, marca que já realizou o primeiro acesso
+      if hasattr(request.user, 'paciente'):
+        paciente = request.user.paciente
+        paciente.primeiro_acesso = False
+        paciente.save()
+
+      messages.success(request, 'Sua senha foi alterada com sucesso!')
+
+      # Redireciona para o painel de acordo com o perfil
+      if hasattr(request.user, 'perfil_psicologo'):
+        return redirect('painel_psicologo')
+      elif hasattr(request.user, 'paciente'):
+        return redirect('painel_paciente')
+      else:
+        return redirect('painel_secretaria')
+    else:
+      messages.error(request, 'Por favor, corrija os erros informados abaixo.')
+  else:
+    form = PasswordChangeForm(request.user)
+
+  return render(request, 'agendamentos/alterar_senha.html', {'form': form})

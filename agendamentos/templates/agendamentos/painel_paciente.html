@@ -282,10 +282,17 @@
         </a>
     </nav>
 
-    <a href="{% url 'logout' %}" class="logout-btn">
-        <i class="bi bi-box-arrow-right"></i> Sair
-    </a>
+    <div class="mt-auto d-flex flex-column gap-2">
+        <a href="{% url 'alterar_senha' %}" class="logout-btn" style="color: #c2d1c7; border-color: rgba(255, 255, 255, 0.15);">
+            <i class="bi bi-key"></i> Alterar Senha
+        </a>
+        <a href="{% url 'logout' %}" class="logout-btn">
+            <i class="bi bi-box-arrow-right"></i> Sair
+        </a>
+    </div>
+
 </aside>
+
 
 <!-- CONTEÚDO PRINCIPAL -->
 <main class="main-content">
