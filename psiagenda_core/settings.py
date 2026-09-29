@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'encrypted_model_fields',
     'agendamentos',
 ]
 
@@ -120,3 +121,5 @@ STATIC_URL = 'static/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
 LOGIN_URL = '/login/'
+
+FIELD_ENCRYPTION_KEY = '0WiOg4lTbcdQajgid-WQ15rUs1UWWwsQOs6B0vqUuZw='

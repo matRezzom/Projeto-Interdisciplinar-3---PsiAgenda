@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from encrypted_model_fields.fields import EncryptedTextField
 from django.db import models
 
 
@@ -62,8 +63,8 @@ class Agendamento(models.Model):
   status = models.CharField(
       max_length=30, choices=STATUS_CHOICES, default='AGENDADO'
   )
-  observacao = models.TextField(blank=True, null=True)
-  motivo_cancelamento = models.TextField(blank=True, null=True)
+  observacao = EncryptedTextField(blank=True, null=True)
+  motivo_cancelamento = EncryptedTextField(blank=True, null=True)
   notificacao_confirmada = models.BooleanField(default=False)
   criado_em = models.DateTimeField(auto_now_add=True)
   atualizado_em = models.DateTimeField(auto_now=True)
